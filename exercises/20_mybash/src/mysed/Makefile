@@ -1,5 +1,4 @@
 # src/mysed/Makefile
-
 CC = gcc
 CFLAGS = -Wall -I../../include
 
@@ -8,7 +7,7 @@ LIBNAME := mysed
 # 静态库输出名：libmysed.a
 LIB := lib$(LIBNAME).a
 # 最终库输出目录（比如 ./obj/src/mysed/）
-OBJDIR ?= ./obj
+OBJDIR ?= ./obj/mysed
 # 最终 .a 文件路径
 LIB_PATH := $(OBJDIR)/$(LIB)
 
@@ -19,8 +18,14 @@ OBJS := $(patsubst %.o,$(OBJDIR)/%.o,$(OBJS))
 
 all: $(LIB_PATH)
 
-# TODO: 在这里添加你的代码
-# I AM NOT DONE
+# 生成 .o 文件规则
+$(OBJDIR)/%.o: %.c
+	mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# 打包静态库
+$(LIB_PATH): $(OBJS)
+	ar rcs $(LIB_PATH) $(OBJS)
 
 clean:
-	@rm -rf $(OBJDIR)/*.o $(LIB_PATH)
+	rm -rf $(OBJDIR)/*.o $(LIB_PATH)

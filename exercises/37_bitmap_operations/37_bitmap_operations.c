@@ -11,13 +11,17 @@
 /* 将第 bit_index 位设置为 1（LSB 为最低位） */
 static void set_bit(unsigned char* bitmap, size_t bit_index) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    size_t byte_idx = bit_index / 8;  // 计算对应字节索引
+    size_t bit_offset = bit_index % 8; // 计算字节内的位偏移
+    bitmap[byte_idx] |= (1 << bit_offset); // 置位（用或运算保证其他位不变）
 }
 
 /* 读取第 bit_index 位，返回 0/1（LSB 为最低位） */
 static int test_bit(const unsigned char* bitmap, size_t bit_index) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    size_t byte_idx = bit_index / 8;  // 计算对应字节索引
+    size_t bit_offset = bit_index % 8; // 计算字节内的位偏移
+    return (bitmap[byte_idx] >> bit_offset) & 1; // 右移后与1做与运算，提取目标位
 }
 
 int main(void) {

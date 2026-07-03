@@ -57,11 +57,66 @@ int shell_parse(char *buf, char *argv[])
 {
     int argc = 0;
     int state = 0;
-    // TODO: 在这里添加你的代码，完成命令行解析
-    // 功能：将输入字符串buf按空格分割成多个参数，存入argv数组
-    // 返回：参数个数argc
-    // 提示：使用状态机的方式处理，注意处理字符串结束符
-    // I AM NOT DONE
+    char *p = buf;
+
+    // 清空argv数组
+    memset(argv, 0, sizeof(char *) * (MAX_ARGS + 1));
+
+    while (*p != '\0' && argc < MAX_ARGS)
+    {
+        if (state == 0)
+        {
+            if (*p == ' ' || *p == '\t')
+            {
+                // 普通模式：跳过空白符
+                p++;
+            }
+            else if (*p == '"')
+            {
+                // 进入引号模式，起始位置下一个字符
+                state = 1;
+                p++;
+                argv[argc] = p;
+            }
+            else
+            {
+                // 普通字符，新参数开头
+                argv[argc] = p;
+                argc++;
+                while (*p != '\0' && *p != ' ' && *p != '\t' && *p != '"')
+                {
+                    p++;
+                }
+                if (*p == '\0' || *p == ' ' || *p == '\t')
+                {
+                    *p = '\0';
+                    p++;
+                }
+                else if (*p == '"')
+                {
+                    // 刚好碰到引号，截断并切状态
+                    *p = '\0';
+                    state = 1;
+                    p++;
+                }
+            }
+        }
+        else // state == 1 引号内
+        {
+            if (*p == '"')
+            {
+                // 退出引号，截断字符串
+                *p = '\0';
+                state = 0;
+                argc++;
+                p++;
+            }
+            else
+            {
+                p++;
+            }
+        }
+    }
     return argc;
 }
 

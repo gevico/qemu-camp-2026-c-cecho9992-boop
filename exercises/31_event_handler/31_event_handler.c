@@ -28,7 +28,12 @@ static void* g_callback_args[EVENT_MAX] = {0};
  */
 void register_event(enum EVENT_TYPE type, void (*callback)(void*), void* arg) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    if (type < 0 || type >= EVENT_MAX) {
+        return;
+    }
+    // 2. 保存回调函数和参数到对应数组位置
+    g_callbacks[type] = callback;
+    g_callback_args[type] = arg;
 }
 
 /*
@@ -36,7 +41,14 @@ void register_event(enum EVENT_TYPE type, void (*callback)(void*), void* arg) {
  */
 void trigger_event(enum EVENT_TYPE type) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    if (type < 0 || type >= EVENT_MAX) {
+        return;
+    }
+    event_callback_t callback = g_callbacks[type];
+    if (callback != NULL) {
+        // 3. 调用回调函数并传入保存的参数
+        callback(g_callback_args[type]);
+    }
 }
 
 /*

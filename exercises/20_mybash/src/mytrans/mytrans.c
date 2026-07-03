@@ -8,7 +8,25 @@
 
 void trim(char *str) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    if (!str) return;
+
+  // 去除开头空白
+  char *start = str;
+  while (*start && isspace((unsigned char)*start)) {
+    start++;
+  }
+
+  // 去除结尾空白
+  char *end = str + strlen(str) - 1;
+  while (end > start && isspace((unsigned char)*end)) {
+    end--;
+  }
+  *(end + 1) = '\0';
+
+  // 移动内容到字符串开头
+  if (start != str) {
+    memmove(str, start, strlen(start) + 1);
+  }
 }
 
 int load_dictionary(const char *filename, HashTable *table,
@@ -23,9 +41,48 @@ int load_dictionary(const char *filename, HashTable *table,
   char current_word[100] = {0};
   char current_translation[1024] = {0};
   int in_entry = 0;
+  *dict_count = 0;  // 初始化词条计数
 
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    
+  while (fgets(line, sizeof(line), file) != NULL) {
+    // 去除行尾换行符/空白符
+    line[strcspn(line, "\n\r")] = '\0';
+    trim(line); // 需先实现 trim 函数
+
+    // 跳过空行
+    if (strlen(line) == 0) {
+      continue;
+    }
+
+    // 解析单词行（以 # 开头）
+    if (line[0] == '#') {
+      // 如果上一个词条未完成（只读到单词没读到翻译），重置
+      if (in_entry) {
+        memset(current_word, 0, sizeof(current_word));
+      }
+      // 提取 # 后的单词（跳过 # 字符）
+      strncpy(current_word, line + 1, sizeof(current_word) - 1);
+      current_word[sizeof(current_word) - 1] = '\0';
+      in_entry = 1; // 标记等待翻译
+    }
+    // 解析翻译行（以 Trans: 开头）
+    else if (strncmp(line, "Trans:", 6) == 0 && in_entry) {
+      // 提取 Trans: 后的翻译内容
+      strncpy(current_translation, line + 6, sizeof(current_translation) - 1);
+      current_translation[sizeof(current_translation) - 1] = '\0';
+      
+      // 插入哈希表
+      if (hash_table_insert(table, current_word, current_translation)) {
+        (*dict_count)++; // 计数+1
+      }
+
+      // 重置当前词条状态
+      memset(current_word, 0, sizeof(current_word));
+      memset(current_translation, 0, sizeof(current_translation));
+      in_entry = 0;
+    }
+  }
 
   fclose(file);
   return 0;

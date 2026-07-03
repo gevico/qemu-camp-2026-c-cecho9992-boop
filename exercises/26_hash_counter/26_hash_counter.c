@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-
 #define TABLE_SIZE 1024  // 哈希表大小
 
 // 哈希表节点结构
@@ -21,7 +20,12 @@ typedef struct {
 // djb2哈希函数
 unsigned long djb2_hash(const char *str) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    unsigned long hash = 5381;
+    int c;
+    while ((c = *str++)) {
+        hash = ((hash << 5) + hash) + c;
+    }
+    return hash;
 }
 
 // 创建哈希表
@@ -35,15 +39,36 @@ HashTable *create_hash_table(int size) {
 // 向哈希表中插入单词
 void hash_table_insert(HashTable *ht, const char *word) {
     unsigned long hash = djb2_hash(word) % ht->size;
-
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    HashNode *cur = ht->table[hash];
+    // 查找是否已存在该单词
+    while (cur != NULL) {
+        if (strcmp(cur->word, word) == 0) {
+            cur->count++;
+            return;
+        }
+        cur = cur->next;
+    }
+    // 不存在则新建节点，头插法
+    HashNode *new_node = (HashNode*)malloc(sizeof(HashNode));
+    new_node->word = (char*)malloc(strlen(word) + 1);
+    strcpy(new_node->word, word);
+    new_node->count = 1;
+    new_node->next = ht->table[hash];
+    ht->table[hash] = new_node;
 }
 
 // 从哈希表中获取所有单词及其计数
 void get_all_words(HashTable *ht, HashNode **nodes, int *count) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    *count = 0;
+    for (int i = 0; i < ht->size; i++) {
+        HashNode *p = ht->table[i];
+        while (p != NULL) {
+            nodes[(*count)++] = p;
+            p = p->next;
+        }
+    }
 }
 
 // 比较函数用于排序
@@ -53,7 +78,11 @@ int compare_nodes(const void *a, const void *b) {
     
     // 先按计数降序，再按字母升序
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    if (node_a->count != node_b->count) {
+        return node_b->count - node_a->count;
+    } else {
+        return strcmp(node_a->word, node_b->word);
+    }
 }
 
 // 释放哈希表内存
@@ -74,18 +103,33 @@ void free_hash_table(HashTable *ht) {
 // 从字符串中获取下一个单词
 char *get_next_word(const char **text) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    // 跳过非字母字符
+    while (**text != '\0' && !isalpha(**text)) {
+        (*text)++;
+    }
+    if (**text == '\0') return NULL;
+    // 记录单词起始位置
+    const char *start = *text;
+    // 读取连续字母
+    while (**text != '\0' && isalpha(**text)) {
+        (*text)++;
+    }
+    int len = *text - start;
+    char *word = (char*)malloc(len + 1);
+    for (int i = 0; i < len; i++) {
+        word[i] = tolower(start[i]);
+    }
+    word[len] = '\0';
+    return word;
 }
 
 int main(int argc, char *argv[]) {
     const char* file_path = "paper.txt";
-
     FILE *file = fopen(file_path, "r");
     if (file == NULL) {
         perror("无法打开文件");
         return 1;
     }
-
     HashTable *ht = create_hash_table(TABLE_SIZE);
     char buffer[4096];
     

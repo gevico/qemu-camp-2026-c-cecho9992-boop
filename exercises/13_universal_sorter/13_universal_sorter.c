@@ -41,7 +41,58 @@ void processFile(const char *filename) {
 
     switch (choice) {
         // TODO: 在这里添加你的代码
-        // I AM NOT DONE
+        case 1: {
+            // 整数数组
+            int *arr = (int *)malloc(n * sizeof(int));
+            for (int i = 0; i < n; i++) {
+                fscanf(fin, "%d", &arr[i]);
+            }
+            sort(arr, n, sizeof(int), compareInt);
+            printf("排序后整数：");
+            for (int i = 0; i < n; i++) {
+                printf("%d ", arr[i]);
+            }
+            printf("\n");
+            free(arr);
+            break;
+        }
+        case 2: {
+            // 浮点数组
+            float *arr = (float *)malloc(n * sizeof(float));
+            for (int i = 0; i < n; i++) {
+                fscanf(fin, "%f", &arr[i]);
+            }
+            sort(arr, n, sizeof(float), compareFloat);
+            printf("排序后浮点数：");
+            for (int i = 0; i < n; i++) {
+                printf("%.2f ", arr[i]);
+            }
+            printf("\n");
+            free(arr);
+            break;
+        }
+        case 3: {
+            // 字符串指针数组，每个字符串动态分配
+            char **strArr = (char **)malloc(n * sizeof(char *));
+            char buf[128];
+            for (int i = 0; i < n; i++) {
+                fscanf(fin, "%s", buf);
+                strArr[i] = (char *)malloc(strlen(buf) + 1);
+                strcpy(strArr[i], buf);
+            }
+            sort(strArr, n, sizeof(char *), compareString);
+            printf("排序后字符串：");
+            for (int i = 0; i < n; i++) {
+                printf("%s ", strArr[i]);
+                free(strArr[i]);
+            }
+            printf("\n");
+            free(strArr);
+            break;
+        }
+        default:
+            printf("未知数据类型 choice=%d\n", choice);
+            break;
     }
 
     fclose(fin);

@@ -26,22 +26,79 @@ typedef struct {
     size_t elem_size; /* 元素大小（字节数） */
 } GArray;
 
+static int garray_resize(GArray* arr);
+
 /* 接口：初始化动态数组 */
 GArray* garray_init(size_t elem_size) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    GArray* arr = (GArray*)malloc(sizeof(GArray));
+    if (!arr) {
+        return NULL;
+    }
+
+    // 2. 初始化容量、长度、元素大小
+    arr->elem_size = elem_size;
+    arr->len = 0;
+    arr->capacity = GARRAY_INIT_CAP;
+
+    // 3. 分配初始数据缓冲区（容量 * 元素大小）
+    arr->data = malloc(arr->capacity * elem_size);
+    if (!arr->data) {
+        free(arr); // 缓冲区分配失败，释放结构体
+        return NULL;
+    }
+
+    return arr;
+}
+
+static int garray_resize(GArray* arr) {
+    size_t new_cap = arr->capacity * 2;
+    // 重新分配内存（保留原有数据）
+    void* new_data = realloc(arr->data, new_cap * arr->elem_size);
+    if (!new_data) {
+        return -1; // 扩容失败
+    }
+    arr->data = new_data;
+    arr->capacity = new_cap;
+    return 0;
 }
 
 /* 接口：追加单个元素，必要时扩容为原来的 2 倍 */
 void garray_append(GArray* arr, void* elem) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    if (!arr || !elem) {
+        return; // 入参合法性检查
+    }
+
+    // 1. 检查是否需要扩容（长度 == 容量时扩容）
+    if (arr->len >= arr->capacity) {
+        if (garray_resize(arr) != 0) {
+            fprintf(stderr, "扩容失败\n");
+            return;
+        }
+    }
+
+    // 2. 计算元素存储位置，拷贝数据（泛型核心：按字节拷贝）
+    char* dest = (char*)arr->data + (arr->len * arr->elem_size);
+    memcpy(dest, elem, arr->elem_size);
+
+    // 3. 长度+1
+    arr->len++;
 }
 
 /* 接口：释放动态数组 */
 void garray_free(GArray* arr) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    if (!arr) {
+        return;
+    }
+    // 1. 释放数据缓冲区
+    if (arr->data) {
+        free(arr->data);
+        arr->data = NULL;
+    }
+    // 2. 释放结构体本身
+    free(arr);
 }
 
 int main(void) {

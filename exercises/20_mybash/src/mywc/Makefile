@@ -1,5 +1,4 @@
 # src/mywc/Makefile
-
 CC = gcc
 CFLAGS = -Wall -I../../include
 
@@ -8,7 +7,7 @@ LIBNAME := mywc
 # 静态库输出名：libmywc.a
 LIB := lib$(LIBNAME).a
 # 最终库输出目录（比如 ./obj/src/mywc/）
-OBJDIR ?= ./obj
+OBJDIR ?= ./obj/mywc
 # 最终 .a 文件路径
 LIB_PATH := $(OBJDIR)/$(LIB)
 
@@ -19,8 +18,14 @@ OBJS := $(patsubst %.o,$(OBJDIR)/%.o,$(OBJS))
 
 all: $(LIB_PATH)
 
-# TODO: 在这里添加你的代码
-# I AM NOT DONE
+# 编译.c生成obj目录下的.o目标文件
+$(OBJDIR)/%.o: %.c
+	mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# 将所有目标文件打包为静态库
+$(LIB_PATH): $(OBJS)
+	ar rcs $(LIB_PATH) $(OBJS)
 
 clean:
-	@rm -rf $(OBJDIR)/*.o $(LIB_PATH)
+	rm -rf $(OBJDIR)/*.o $(LIB_PATH)

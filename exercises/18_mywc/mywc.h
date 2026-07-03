@@ -16,7 +16,7 @@ typedef struct WordCount {
     struct WordCount *next;
 } WordCount;
 
-void process_file(const char *filename);
+int process_file(const char *filename);
 WordCount **create_hash_table();
 unsigned int hash(const char *word);
 void add_word(WordCount **hash_table, const char *word);

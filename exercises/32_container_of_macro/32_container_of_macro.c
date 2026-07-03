@@ -20,9 +20,17 @@ struct Test {
  *      → 结构体首地址 = 成员地址 - 成员偏移量
  * 类型约束：使用 typeof 对 ptr 的类型进行校验，减少误用风险
  */
-#define container_of(ptr, type, member)
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+#define container_of(ptr, type, member) ({                  \
+    /* 类型校验：确保 ptr 指向的类型与 member 类型一致 */    \
+    const typeof(((type *)0)->member) *__mptr = (ptr);       \
+    /* 空指针校验 */                                        \
+    if (__mptr == NULL) {                                    \
+        fprintf(stderr, "错误：传入空指针\n");               \
+        exit(1);                                             \
+    }                                                        \
+    /* 计算结构体首地址：成员地址 - 成员偏移量 */            \
+    (type *)((char *)__mptr - offsetof(type, member));       \
+})
 
 int main(void) {
     struct Test t = {.a = 42, .b = 'Z'};

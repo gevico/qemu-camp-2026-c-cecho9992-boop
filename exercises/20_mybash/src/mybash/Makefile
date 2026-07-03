@@ -1,28 +1,30 @@
-# src/mybash/Makefile
-
 CC = gcc
-CFLAGS = -Wall -I../../include
+CFLAGS = -Wall -Wextra -std=c11 -I../../include
 
-# 可执行文件名
-TARGET := mybash
-# 最终输出到 BINDIR（比如 ./bin/）
-BINDIR ?= ./bin
-# 中间文件目录（比如 ./obj/src/mybash/）
-OBJDIR ?= ./obj
-LINKLIBS ?= -L../../obj/mysed -L../../obj/mywc -L../../obj/mytrans -L../../obj/myfile
+TARGET = mybash
 
-# 源文件
-SRCS := main.c
-OBJS := $(SRCS:.c=.o)
-OBJS := $(patsubst %.o,$(OBJDIR)/%.o,$(OBJS))
+BINDIR = ../../bin
+OBJDIR = ../../obj/mybash
+LIBDIR = ../../obj
 
-# 最终二进制路径
-TARGET_PATH := $(BINDIR)/$(TARGET)
+SRCS = main.c
+OBJS = $(SRCS:%.c=$(OBJDIR)/%.o)
 
-all: $(TARGET_PATH)
+LIBS = \
+$(LIBDIR)/myfile/libmyfile.a \
+$(LIBDIR)/mywc/libmywc.a \
+$(LIBDIR)/mysed/libmysed.a \
+$(LIBDIR)/mytrans/libmytrans.a
 
-# TODO: 在这里添加你的代码
-# I AM NOT DONE
+all: $(BINDIR)/$(TARGET)
+
+$(OBJDIR)/%.o: %.c
+	mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BINDIR)/$(TARGET): $(OBJS)
+	mkdir -p $(BINDIR)
+	$(CC) $(OBJS) $(LIBS) -o $@
 
 clean:
-	@rm -rf $(OBJDIR)/*.o $(TARGET_PATH)
+	rm -rf $(OBJDIR) $(BINDIR)/$(TARGET)

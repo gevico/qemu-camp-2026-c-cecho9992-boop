@@ -14,7 +14,31 @@ int parse_replace_command(const char* cmd, char** old_str, char** new_str) {
     *new_str = NULL;
     
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    if (cmd[0] != 's') return -1;
+    char sep = cmd[1];
+    if (sep == '\0') return -1;
+
+    char *p = (char*)cmd + 2;
+    // 截取 old
+    char *old_start = p;
+    while (*p && *p != sep) p++;
+    if (*p != sep) return -1;
+    size_t old_len = p - old_start;
+    p++;
+    // 截取 new
+    char *new_start = p;
+    while (*p && *p != sep) p++;
+    if (*p != sep) return -1;
+    size_t new_len = p - new_start;
+
+    // 分配内存拷贝
+    *old_str = malloc(old_len + 1);
+    *new_str = malloc(new_len + 1);
+    if (!*old_str || !*new_str) return -1;
+    strncpy(*old_str, old_start, old_len);
+    (*old_str)[old_len] = 0;
+    strncpy(*new_str, new_start, new_len);
+    (*new_str)[new_len] = 0;
 
     return 0;
 }
@@ -26,7 +50,17 @@ void replace_first_occurrence(char* str, const char* old, const char* new) {
     }
     
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    char *pos = strstr(str, old);
+    if (!pos) return;
+    size_t old_len = strlen(old);
+    size_t new_len = strlen(new);
+    // 尾部剩余字符
+    char suffix[1024];
+    strcpy(suffix, pos + old_len);
+    // 拼接新字符串
+    *pos = '\0';
+    strcat(str, new);
+    strcat(str, suffix);
 }
 
 int __cmd_mysed(const char* rules, const char* str) {

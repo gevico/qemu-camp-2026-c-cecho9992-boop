@@ -21,24 +21,110 @@ typedef struct {
 
 static int rb_init(ring_buffer_t *rb, size_t capacity) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    if (rb == NULL || capacity == 0) {
+        return -1;
+    }
+
+    rb->buf = (int *)malloc(sizeof(int) * capacity);
+    if (rb->buf == NULL) {
+        return -1;
+    }
+
+    rb->capacity = capacity;
+    rb->head = 0;
+    rb->tail = 0;
+    rb->count = 0;
+
+    // 初始化互斥锁
+    if (pthread_mutex_init(&rb->mtx, NULL) != 0) {
+        free(rb->buf);
+        return -1;
+    }
+
+    // 初始化条件变量
+    if (pthread_cond_init(&rb->not_full, NULL) != 0) {
+        pthread_mutex_destroy(&rb->mtx);
+        free(rb->buf);
+        return -1;
+    }
+
+    if (pthread_cond_init(&rb->not_empty, NULL) != 0) {
+        pthread_cond_destroy(&rb->not_full);
+        pthread_mutex_destroy(&rb->mtx);
+        free(rb->buf);
+        return -1;
+    }
+
+    return 0;
 }
 
 static void rb_destroy(ring_buffer_t *rb) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    if (rb == NULL) {
+        return;
+    }
+
+    // 销毁同步原语
+    pthread_mutex_destroy(&rb->mtx);
+    pthread_cond_destroy(&rb->not_full);
+    pthread_cond_destroy(&rb->not_empty);
+
+    // 释放缓冲区内存
+    free(rb->buf);
+    rb->buf = NULL;
+    rb->capacity = 0;
+    rb->head = rb->tail = rb->count = 0;
 }
 
 /* 入队：满则等待 not_full */
 static void rb_push(ring_buffer_t *rb, int val) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    pthread_mutex_lock(&rb->mtx);
+
+    // 缓冲区满则等待
+    while (rb->count == rb->capacity) {
+        pthread_cond_wait(&rb->not_full, &rb->mtx);
+    }
+
+    // 写入数据到尾指针位置
+    rb->buf[rb->tail] = val;
+    rb->tail = (rb->tail + 1) % rb->capacity;
+    rb->count++;
+
+    // 通知消费者有数据可读
+    pthread_cond_signal(&rb->not_empty);
+
+    // 解锁
+    pthread_mutex_unlock(&rb->mtx);
 }
 
 /* 出队：空则等待 not_empty */
 static int rb_pop(ring_buffer_t *rb, int *out) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    if (out == NULL || rb == NULL) {
+        return -1;
+    }
+
+    // 加锁保护临界区
+    pthread_mutex_lock(&rb->mtx);
+
+    // 缓冲区空则等待
+    while (rb->count == 0) {
+        pthread_cond_wait(&rb->not_empty, &rb->mtx);
+    }
+
+    // 从头部读取数据
+    *out = rb->buf[rb->head];
+    rb->head = (rb->head + 1) % rb->capacity;
+    rb->count--;
+
+    // 通知生产者有空间可写
+    pthread_cond_signal(&rb->not_full);
+
+    // 解锁
+    pthread_mutex_unlock(&rb->mtx);
+
+    return 0;
 }
 
 typedef struct {
@@ -54,12 +140,37 @@ typedef struct {
 
 static void *producer(void *arg) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    producer_arg_t *pa = (producer_arg_t *)arg;
+    if (pa == NULL || pa->rb == NULL || pa->data == NULL) {
+        pthread_exit(NULL);
+    }
+
+    // 逐个写入数据
+    for (size_t i = 0; i < pa->n; i++) {
+        rb_push(pa->rb, pa->data[i]);
+        // 可选：打印生产日志（便于调试）
+        // printf("Producer: push %d\n", pa->data[i]);
+    }
+
+    pthread_exit(NULL);
 }
 
 static void *consumer(void *arg) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    consumer_arg_t *ca = (consumer_arg_t *)arg;
+    if (ca == NULL || ca->rb == NULL) {
+        pthread_exit(NULL);
+    }
+
+    int val;
+    // 逐个读取并打印数据
+    for (size_t i = 0; i < ca->n; i++) {
+        if (rb_pop(ca->rb, &val) == 0) {
+            printf("%d%c", val, (i == ca->n - 1) ? '\n' : ',');
+        }
+    }
+
+    pthread_exit(NULL);
 }
 
 int main(void) {

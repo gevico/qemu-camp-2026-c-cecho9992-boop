@@ -57,7 +57,33 @@ int hash_table_insert(HashTable *table, const char *key, const char *value) {
   HashNode *node = table->buckets[hash];
 
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    // 检查是否已存在相同key，存在则更新value
+  while (node) {
+    if (strcmp(node->key, key) == 0) {
+      free(node->value); // 释放旧翻译
+      node->value = strdup(value); // 分配新翻译
+      return 1;
+    }
+    node = node->next;
+  }
+
+  // 不存在则创建新节点
+  HashNode *new_node = malloc(sizeof(HashNode));
+  if (!new_node) return 0;
+
+  // 分配内存并拷贝key/value（strdup = malloc + strcpy）
+  new_node->key = strdup(key);
+  new_node->value = strdup(value);
+  if (!new_node->key || !new_node->value) {
+    free(new_node->key);
+    free(new_node->value);
+    free(new_node);
+    return 0;
+  }
+
+  // 头插法插入链表（链地址法解决哈希冲突）
+  new_node->next = table->buckets[hash];
+  table->buckets[hash] = new_node;
 
   return 1;
 }
@@ -71,7 +97,12 @@ const char *hash_table_lookup(HashTable *table, const char *key) {
   HashNode *node = table->buckets[hash];
 
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    while (node) {
+    if (strcmp(node->key, key) == 0) {
+      return node->value; // 找到则返回翻译
+    }
+    node = node->next;
+  }
 
   return NULL; // 未找到
 }

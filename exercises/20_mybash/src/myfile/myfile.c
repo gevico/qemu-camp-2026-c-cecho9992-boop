@@ -39,7 +39,23 @@ int __cmd_myfile(const char* filename) {
     printf("filepath: %s\n", filepath);
 
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    fd = open(filepath, O_RDONLY);
+    if (fd < 0) {
+        perror("open failed");
+        return 1;
+    }
+    // 读取ELF头部
+    if (read(fd, &ehdr, sizeof(Elf64_Ehdr)) != sizeof(Elf64_Ehdr)) {
+        perror("read elf header failed");
+        close(fd);
+        return 1;
+    }
+    // 判断是否合法ELF文件
+    if (memcmp(ehdr.e_ident, ELFMAG, SELFMAG) != 0) {
+        fprintf(stderr, "Not a valid ELF file\n");
+        close(fd);
+        return 1;
+    }
 
     print_elf_type(ehdr.e_type);
     close(fd);

@@ -1,26 +1,45 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
 /**
- * URL参数解析器
- * 输入：包含http/https超链接的字符串
- * 输出：解析出所有的key-value键值对，每行显示一个
+ * URL解析器（严格格式版）
  */
 
 int parse_url(const char* url) {
-    int err = 0;
+    char *q = strstr(url, "?");
 
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    if (!q) {
+        printf("No query parameters\n");
+        return 0;
+    }
 
-exit:
-    return err;
+    char buf[512];
+    strcpy(buf, q + 1);
+
+    char *param = strtok(buf, "&");
+
+    while (param) {
+        char *eq = strchr(param, '=');
+
+        if (!eq) {
+            printf("key = %s, value = (empty)\n", param);
+        } else {
+            *eq = '\0';
+            char *key = param;
+            char *val = eq + 1;
+
+            printf("key = %s, value = %s\n", key, val);
+        }
+
+        param = strtok(NULL, "&");
+    }
+
+    return 0;
 }
 
 int main() {
-    const char* test_url = "https://cn.bing.com/search?name=John&age=30&city=New+York";
+    const char* test_url =
+        "https://cn.bing.com/search?name=John&age=30&city=New+York";
 
     printf("Parsing URL: %s\n", test_url);
     printf("Parameters:\n");

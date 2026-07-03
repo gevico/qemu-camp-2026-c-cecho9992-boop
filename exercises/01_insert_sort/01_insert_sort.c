@@ -9,7 +9,18 @@ typedef struct {
 
 void insertion_sort(Student students[], int n) {
     // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+   
+    for(int i = 1; i < n;i++){
+        int j = i - 1;
+        Student key = students[i];
+        while (j >= 0 && key.score>students[j].score)
+        {
+            students[j+1] = students[j];
+            j--;
+        }
+        students[j+1] = key;
+    }
+    // 
 }
 
 int main(void) {
